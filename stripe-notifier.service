@@ -1,0 +1,18 @@
+# Deploy: sudo cp stripe-notifier.service /etc/systemd/system/
+# Enable: sudo systemctl enable stripe-notifier
+# Start:  sudo systemctl start stripe-notifier
+# Logs:   journalctl -u stripe-notifier -f
+
+[Unit]
+Description=Stripe Notification Bot
+After=network.target
+
+[Service]
+WorkingDirectory=/home/pi/stripe_notification
+ExecStart=/home/pi/stripe_notification/venv/bin/python main.py
+Restart=always
+RestartSec=10
+EnvironmentFile=/home/pi/stripe_notification/.env
+
+[Install]
+WantedBy=multi-user.target

@@ -46,6 +46,15 @@ cp .env.example .env
 python main.py
 ```
 
+## Backfill historical revenue
+
+On a fresh machine the SQLite `state.db` starts with `total_revenue = 0`. Run this once before starting the service to seed the counter from Stripe history:
+
+```bash
+python backfill_revenue.py --since 2026-06-08 --dry-run  # verify total
+python backfill_revenue.py --since 2026-06-08            # write to DB
+```
+
 ## Deploy on Raspberry Pi (systemd)
 
 ```bash

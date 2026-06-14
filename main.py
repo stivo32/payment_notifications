@@ -30,11 +30,12 @@ def run_poll_cycle(state: State) -> None:
             user_id = metadata.get("user_id")
             user = supabase_client.get_user(user_id) if user_id else None
 
-            text = message_formatter.format_message(session, user, event.created)
-            telegram_client.send_message(text)
-
             state.mark_processed(event.id)
             state.set_last_event_created(event.created)
+            total_revenue = state.add_revenue(session.amount_total / 100)
+
+            text = message_formatter.format_message(session, user, event.created, total_revenue)
+            telegram_client.send_message(text)
             logger.info("Processed event %s", event.id)
 
     except Exception:

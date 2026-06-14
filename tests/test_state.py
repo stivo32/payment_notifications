@@ -24,3 +24,13 @@ def test_set_and_get_last_event_created(tmp_path):
     s = state.State(str(tmp_path / "state.db"))
     s.set_last_event_created(1700000000)
     assert s.get_last_event_created() == 1700000000
+
+def test_get_total_revenue_returns_zero_when_not_set(tmp_path):
+    s = state.State(str(tmp_path / "state.db"))
+    assert s.get_total_revenue() == 0.0
+
+def test_add_revenue_accumulates(tmp_path):
+    s = state.State(str(tmp_path / "state.db"))
+    assert s.add_revenue(9.99) == pytest.approx(9.99)
+    assert s.add_revenue(1.99) == pytest.approx(11.98)
+    assert s.get_total_revenue() == pytest.approx(11.98)

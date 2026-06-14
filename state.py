@@ -55,3 +55,22 @@ class State:
                 "INSERT OR REPLACE INTO state (key, value) VALUES ('last_event_created', ?)",
                 (str(timestamp),)
             )
+
+    def add_revenue(self, amount: float) -> float:
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT value FROM state WHERE key = 'total_revenue'"
+            ).fetchone()
+            total = float(row[0]) + amount if row else amount
+            conn.execute(
+                "INSERT OR REPLACE INTO state (key, value) VALUES ('total_revenue', ?)",
+                (str(total),)
+            )
+        return total
+
+    def get_total_revenue(self) -> float:
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT value FROM state WHERE key = 'total_revenue'"
+            ).fetchone()
+            return float(row[0]) if row else 0.0

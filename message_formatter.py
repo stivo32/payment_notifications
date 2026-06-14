@@ -13,7 +13,7 @@ def _metadata_dict(metadata) -> dict:
     return dict(metadata)
 
 
-def format_message(session, user: dict | None, event_created: int | None = None) -> str:
+def format_message(session, user: dict | None, event_created: int | None = None, total_revenue: float | None = None) -> str:
     metadata = _metadata_dict(session.metadata)
     email = session.customer_email or "unknown"
     amount = session.amount_total / 100
@@ -35,5 +35,8 @@ def format_message(session, user: dict | None, event_created: int | None = None)
             lines.append(f"Registered: {registered}")
     else:
         lines.append("⚠️ User not found in DB")
+
+    if total_revenue is not None:
+        lines.append(f"Total revenue: ${total_revenue:.2f}")
 
     return "\n".join(lines)

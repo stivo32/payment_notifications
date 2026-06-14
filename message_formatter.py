@@ -1,20 +1,36 @@
-# This file has been created with the assistance of an AI tool.
+from datetime import datetime, timezone
 
 
-def format_message(session, user: dict | None) -> str:
-    """Build Telegram message from Stripe session and optional Supabase user."""
+def _fmt_dt(ts: int) -> str:
+    return datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+
+def _metadata_dict(metadata) -> dict:
+    if metadata is None:
+        return {}
+    if hasattr(metadata, "to_dict"):
+        return metadata.to_dict()
+    return dict(metadata)
+
+
+def format_message(session, user: dict | None, event_created: int | None = None) -> str:
+    metadata = _metadata_dict(session.metadata)
     email = session.customer_email or "unknown"
     amount = session.amount_total / 100
     currency = session.currency.upper()
+    utm_source = metadata.get("attr_utm_source") or "—"
+    purchased_ts = event_created or session.created
 
     lines = [
         "💳 New Purchase",
         f"Email: {email}",
         f"Amount: ${amount:.2f} {currency}",
+        f"Source: {utm_source}",
+        f"Purchased: {_fmt_dt(purchased_ts)}",
     ]
 
     if user:
-        registered = user.get("created_at", "")[:10]  # YYYY-MM-DD
+        registered = str(user.get("created_at", ""))[:10]
         if registered:
             lines.append(f"Registered: {registered}")
     else:

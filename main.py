@@ -25,10 +25,12 @@ def run_poll_cycle(state: State) -> None:
                 continue
 
             session = event.data.object
-            user_id = (session.metadata or {}).get("user_id")
+            meta = session.metadata
+            metadata = meta.to_dict() if hasattr(meta, "to_dict") else dict(meta or {})
+            user_id = metadata.get("user_id")
             user = supabase_client.get_user(user_id) if user_id else None
 
-            text = message_formatter.format_message(session, user)
+            text = message_formatter.format_message(session, user, event.created)
             telegram_client.send_message(text)
 
             state.mark_processed(event.id)

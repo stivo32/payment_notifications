@@ -29,7 +29,7 @@ def test_poll_cycle_processes_new_event():
          patch("main.message_formatter.format_message", return_value="msg") as mock_fmt:
         main.run_poll_cycle(mock_state)
 
-    mock_fmt.assert_called_once_with(event.data.object, user)
+    mock_fmt.assert_called_once_with(event.data.object, user, 1700000100)
     mock_send.assert_called_once_with("msg")
     mock_state.mark_processed.assert_called_once_with("evt_1")
     mock_state.set_last_event_created.assert_called_once_with(1700000100)

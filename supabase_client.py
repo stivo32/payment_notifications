@@ -9,18 +9,17 @@ _client = create_client(config.SUPABASE_URL, config.SUPABASE_SERVICE_KEY)
 
 
 def get_user(user_id: str) -> dict | None:
-    """Fetch user record by id. Returns dict or None if not found."""
+    """Fetch user from auth.users by id. Returns dict or None if not found."""
     try:
-        response = (
-            _client.table("users")
-            .select("*")
-            .eq("id", user_id)
-            .limit(1)
-            .execute()
-        )
-        if response.data:
-            return response.data[0]
-        return None
+        response = _client.auth.admin.get_user_by_id(user_id)
+        user = response.user
+        if not user:
+            return None
+        return {
+            "id": user.id,
+            "email": user.email,
+            "created_at": str(user.created_at),
+        }
     except Exception as e:
         logger.error("Supabase error fetching user %s: %s", user_id, e)
         return None

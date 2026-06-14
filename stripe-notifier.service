@@ -8,11 +8,11 @@ Description=Stripe Notification Bot
 After=network.target
 
 [Service]
-WorkingDirectory=/home/pi/stripe_notification
-ExecStart=/home/pi/stripe_notification/venv/bin/python main.py
+WorkingDirectory=/home/admin/payment_notifications
+ExecStart=/home/admin/payment_notifications/venv/bin/python main.py
 Restart=always
 RestartSec=10
-EnvironmentFile=/home/pi/stripe_notification/.env
+EnvironmentFile=/home/admin/payment_notifications/.env
 
 [Install]
 WantedBy=multi-user.target

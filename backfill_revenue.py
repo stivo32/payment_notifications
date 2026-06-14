@@ -1,5 +1,6 @@
 """
 Recalculate total_revenue in SQLite from all historical Stripe events.
+Also marks all events as processed so the main service won't double-count them.
 Usage: python backfill_revenue.py [--since 2024-06-08] [--dry-run]
 """
 import argparse
@@ -33,12 +34,15 @@ def main() -> None:
     print(f"Found {len(events)} event(s)")
 
     total = 0.0
+    last_created = 0
     for event in events:
         session = event.data.object
         amount = session.amount_total / 100
         currency = session.currency.upper()
-        print(f"  {event.id}  {amount:.2f} {currency}")
+        print(f"  {event.id}  created={event.created}  {amount:.2f} {currency}")
         total += amount
+        if event.created > last_created:
+            last_created = event.created
 
     print(f"\nTotal: {total:.2f}")
 
@@ -52,7 +56,19 @@ def main() -> None:
             "INSERT OR REPLACE INTO state (key, value) VALUES ('total_revenue', ?)",
             (str(total),)
         )
-    print(f"Updated total_revenue in {config.STATE_DB_PATH}")
+        for event in events:
+            conn.execute(
+                "INSERT OR IGNORE INTO processed_events (event_id) VALUES (?)",
+                (event.id,)
+            )
+        if last_created:
+            conn.execute(
+                "INSERT OR REPLACE INTO state (key, value) VALUES ('last_event_created', ?)",
+                (str(last_created),)
+            )
+
+    print(f"Updated total_revenue={total:.2f}, marked {len(events)} events as processed, last_event_created={last_created}")
+    print(f"DB: {config.STATE_DB_PATH}")
 
 
 if __name__ == "__main__":

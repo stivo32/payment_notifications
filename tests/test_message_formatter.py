@@ -39,7 +39,7 @@ def test_format_converts_cents_to_dollars():
     assert "$100.50" in result
 
 
-def test_format_uppercase_currency():
+def test_format_currency_symbol():
     session = _make_session("a@b.com", 1000, "eur", {})
     result = message_formatter.format_message(session, None)
-    assert "EUR" in result
+    assert "€10.00" in result

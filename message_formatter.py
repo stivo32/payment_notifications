@@ -5,6 +5,13 @@ def _fmt_dt(ts: int) -> str:
     return datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
 
+_CURRENCY_SYMBOLS = {"USD": "$", "EUR": "€", "GBP": "£"}
+
+
+def _symbol(currency: str) -> str:
+    return _CURRENCY_SYMBOLS.get(currency, currency + " ")
+
+
 def _metadata_dict(metadata) -> dict:
     if metadata is None:
         return {}
@@ -24,7 +31,7 @@ def format_message(session, user: dict | None, event_created: int | None = None,
     lines = [
         "💳 New Purchase",
         f"Email: {email}",
-        f"Amount: ${amount:.2f} {currency}",
+        f"Amount: {_symbol(currency)}{amount:.2f}",
         f"Source: {utm_source}",
         f"Purchased: {_fmt_dt(purchased_ts)}",
     ]
@@ -37,6 +44,6 @@ def format_message(session, user: dict | None, event_created: int | None = None,
         lines.append("⚠️ User not found in DB")
 
     if total_revenue is not None:
-        lines.append(f"Total revenue: ${total_revenue:.2f}")
+        lines.append(f"Total revenue: {_symbol(currency)}{total_revenue:.2f}")
 
     return "\n".join(lines)

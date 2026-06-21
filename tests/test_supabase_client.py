@@ -40,3 +40,33 @@ def test_get_user_returns_none_on_exception():
         result = supabase_client.get_user("uid_abc")
 
     assert result is None
+
+
+def test_get_purchase_country_returns_country_when_found():
+    mock_response = MagicMock()
+    mock_response.data = [{"buyer_country": "LT"}]
+
+    with patch("supabase_client._client") as mock_client:
+        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = mock_response
+        result = supabase_client.get_purchase_country("cs_live_abc")
+
+    assert result == "LT"
+
+
+def test_get_purchase_country_returns_none_when_not_found():
+    mock_response = MagicMock()
+    mock_response.data = []
+
+    with patch("supabase_client._client") as mock_client:
+        mock_client.table.return_value.select.return_value.eq.return_value.limit.return_value.execute.return_value = mock_response
+        result = supabase_client.get_purchase_country("cs_live_missing")
+
+    assert result is None
+
+
+def test_get_purchase_country_returns_none_on_exception():
+    with patch("supabase_client._client") as mock_client:
+        mock_client.table.side_effect = Exception("DB error")
+        result = supabase_client.get_purchase_country("cs_live_err")
+
+    assert result is None

@@ -96,11 +96,9 @@ def test_fetch_stripe_fee_returns_none_on_stripe_error():
 
 def test_fetch_stripe_fee_returns_none_when_balance_transaction_missing():
     mock_pi = MagicMock()
-    mock_pi.latest_charge.balance_transaction = None
-    type(mock_pi.latest_charge.balance_transaction).fee = property(lambda self: (_ for _ in ()).throw(AttributeError))
+    mock_pi.latest_charge.balance_transaction = None  # None.fee raises AttributeError
 
     with patch("stripe_client.stripe.PaymentIntent.retrieve", return_value=mock_pi):
-        # AttributeError on .fee access — should return None
         result = stripe_client.fetch_stripe_fee("pi_nobt")
 
     assert result is None

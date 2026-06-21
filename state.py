@@ -25,6 +25,12 @@ class State:
                     value TEXT
                 )
             """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS sheets_exported_events (
+                    event_id TEXT PRIMARY KEY,
+                    exported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
 
     def is_processed(self, event_id: str) -> bool:
         with self._conn() as conn:
@@ -74,3 +80,17 @@ class State:
                 "SELECT value FROM state WHERE key = 'total_revenue'"
             ).fetchone()
             return float(row[0]) if row else 0.0
+
+    def is_sheets_exported(self, event_id: str) -> bool:
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT 1 FROM sheets_exported_events WHERE event_id = ?", (event_id,)
+            ).fetchone()
+            return row is not None
+
+    def mark_sheets_exported(self, event_id: str) -> None:
+        with self._conn() as conn:
+            conn.execute(
+                "INSERT OR IGNORE INTO sheets_exported_events (event_id) VALUES (?)",
+                (event_id,)
+            )

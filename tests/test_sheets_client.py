@@ -31,9 +31,10 @@ def test_append_row_calls_worksheet_append(mock_config, mock_gc):
         1,
         expected_ts,
         "user@example.com",
-        pytest.approx(19.99),
         "Pro Plan",
         "LT",
+        pytest.approx(19.99),
+        pytest.approx(0.59),
         pytest.approx(19.40),
         "cs_live_abc",
         "pi_abc",
@@ -90,6 +91,7 @@ def test_append_row_empty_net_when_fee_is_none(mock_config, mock_gc):
     sheets_client.append_row(session, None, None, None, 1750000000)
 
     args = mock_ws.append_row.call_args[0][0]
-    assert args[6] == ""   # net is empty
-    assert args[4] == ""   # product is empty
-    assert args[5] == ""   # country is empty
+    assert args[3] == ""   # product is empty
+    assert args[4] == ""   # country is empty
+    assert args[6] == ""   # fee is empty
+    assert args[7] == ""   # net is empty

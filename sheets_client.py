@@ -8,7 +8,7 @@ import config
 logger = logging.getLogger(__name__)
 
 _SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-_HEADER = ["#", "Purchased", "Email", "Amount", "Product", "Country", "Net", "Session ID", "Payment Intent ID"]
+_HEADER = ["#", "Purchased", "Email", "Product", "Country", "Amount", "Stripe Fee", "Net", "Session ID", "Payment Intent ID"]
 
 _gc = None
 
@@ -24,7 +24,7 @@ def _get_or_create_sheet(spreadsheet, tab_name: str):
     try:
         return spreadsheet.worksheet(tab_name)
     except gspread.exceptions.WorksheetNotFound:
-        ws = spreadsheet.add_worksheet(title=tab_name, rows=1000, cols=9)
+        ws = spreadsheet.add_worksheet(title=tab_name, rows=1000, cols=10)
         ws.append_row(_HEADER)
         return ws
 
@@ -43,6 +43,7 @@ def append_row(
         row_number = len(ws.get_all_values())
 
         amount = session.amount_total / 100
+        fee = round(stripe_fee, 2) if stripe_fee is not None else ""
         net = round(amount - stripe_fee, 2) if stripe_fee is not None else ""
 
         purchased = datetime.fromtimestamp(event_created, tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -51,9 +52,10 @@ def append_row(
             row_number,
             purchased,
             session.customer_email or "",
-            amount,
             product_name or "",
             country or "",
+            amount,
+            fee,
             net,
             session.id,
             session.payment_intent or "",

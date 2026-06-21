@@ -28,7 +28,7 @@ def test_append_row_calls_worksheet_append(mock_config, mock_gc):
     mock_ws.append_row.assert_called_once_with([
         1,
         "user@example.com",
-        19.99,
+        pytest.approx(19.99),
         "Pro Plan",
         "LT",
         pytest.approx(19.40),

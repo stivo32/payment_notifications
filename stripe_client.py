@@ -33,6 +33,7 @@ def fetch_product_name(price_id: str) -> str:
         return name
     except stripe.StripeError as e:
         logger.error("Failed to fetch product name for %s: %s", price_id, e)
+        _price_name_cache[price_id] = price_id
         return price_id
 
 

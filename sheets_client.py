@@ -2,13 +2,11 @@ import logging
 from datetime import datetime, timezone
 
 import gspread
-from google.oauth2.service_account import Credentials
 
 import config
 
 logger = logging.getLogger(__name__)
 
-_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 _HEADER = ["#", "Email", "Amount", "Product", "Country", "Net", "Session ID", "Payment Intent ID"]
 
 _gc = None
@@ -17,8 +15,7 @@ _gc = None
 def _get_gc():
     global _gc
     if _gc is None:
-        creds = Credentials.from_service_account_file(config.GOOGLE_SERVICE_ACCOUNT_JSON, scopes=_SCOPES)
-        _gc = gspread.authorize(creds)
+        _gc = gspread.service_account(filename=config.GOOGLE_SERVICE_ACCOUNT_JSON)
     return _gc
 
 

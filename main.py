@@ -6,6 +6,7 @@ import stripe_client
 import supabase_client
 import telegram_client
 import message_formatter
+import sheets_client
 from state import State
 
 logging.basicConfig(
@@ -36,6 +37,13 @@ def run_poll_cycle(state: State) -> None:
 
             text = message_formatter.format_message(session, user, event.created, total_revenue)
             telegram_client.send_message(text)
+
+            price_id = metadata.get("price_id")
+            product_name = stripe_client.fetch_product_name(price_id) if price_id else None
+            stripe_fee = stripe_client.fetch_stripe_fee(session.payment_intent)
+            country = supabase_client.get_purchase_country(session.id)
+            sheets_client.append_row(session, product_name, country, stripe_fee, event.created)
+
             logger.info("Processed event %s", event.id)
 
     except Exception:

@@ -34,3 +34,21 @@ def test_add_revenue_accumulates(tmp_path):
     assert s.add_revenue(9.99) == pytest.approx(9.99)
     assert s.add_revenue(1.99) == pytest.approx(11.98)
     assert s.get_total_revenue() == pytest.approx(11.98)
+
+
+def test_is_sheets_exported_returns_false_for_new_event(tmp_path):
+    s = state.State(str(tmp_path / "state.db"))
+    assert s.is_sheets_exported("evt_123") is False
+
+
+def test_mark_sheets_exported_then_is_sheets_exported_returns_true(tmp_path):
+    s = state.State(str(tmp_path / "state.db"))
+    s.mark_sheets_exported("evt_123")
+    assert s.is_sheets_exported("evt_123") is True
+
+
+def test_mark_sheets_exported_is_idempotent(tmp_path):
+    s = state.State(str(tmp_path / "state.db"))
+    s.mark_sheets_exported("evt_123")
+    s.mark_sheets_exported("evt_123")  # should not raise
+    assert s.is_sheets_exported("evt_123") is True

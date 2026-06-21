@@ -70,3 +70,43 @@ def test_poll_cycle_no_user_still_sends():
         main.run_poll_cycle(mock_state)
 
     mock_send.assert_called_once_with("msg")
+
+
+def test_poll_cycle_calls_sheets_append_row():
+    event = _make_event("evt_1", 1700000100)
+    event.data.object.id = "cs_live_abc"
+    event.data.object.payment_intent = "pi_abc"
+    event.data.object.metadata = {"user_id": "uid_abc", "price_id": "price_xyz"}
+    mock_state = MagicMock()
+    mock_state.get_last_event_created.return_value = 1700000000
+    mock_state.is_processed.return_value = False
+
+    with patch("main.stripe_client.fetch_new_events", return_value=[event]), \
+         patch("main.stripe_client.fetch_product_name", return_value="Pro Plan") as mock_name, \
+         patch("main.stripe_client.fetch_stripe_fee", return_value=0.59) as mock_fee, \
+         patch("main.supabase_client.get_user", return_value=None), \
+         patch("main.supabase_client.get_purchase_country", return_value="LT") as mock_country, \
+         patch("main.telegram_client.send_message"), \
+         patch("main.message_formatter.format_message", return_value="msg"), \
+         patch("main.sheets_client.append_row") as mock_sheets:
+        main.run_poll_cycle(mock_state)
+
+    mock_name.assert_called_once_with("price_xyz")
+    mock_fee.assert_called_once_with("pi_abc")
+    mock_country.assert_called_once_with("cs_live_abc")
+    mock_sheets.assert_called_once_with(
+        event.data.object, "Pro Plan", "LT", 0.59, 1700000100
+    )
+
+
+def test_poll_cycle_sheets_not_called_when_event_already_processed():
+    event = _make_event("evt_1", 1700000100)
+    mock_state = MagicMock()
+    mock_state.get_last_event_created.return_value = 1700000000
+    mock_state.is_processed.return_value = True
+
+    with patch("main.stripe_client.fetch_new_events", return_value=[event]), \
+         patch("main.sheets_client.append_row") as mock_sheets:
+        main.run_poll_cycle(mock_state)
+
+    mock_sheets.assert_not_called()

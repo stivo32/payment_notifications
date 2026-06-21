@@ -23,3 +23,20 @@ def get_user(user_id: str) -> dict | None:
     except Exception as e:
         logger.error("Supabase error fetching user %s: %s", user_id, e)
         return None
+
+
+def get_purchase_country(session_id: str) -> str | None:
+    try:
+        response = (
+            _client.table("purchase_logs")
+            .select("buyer_country")
+            .eq("checkout_session_id", session_id)
+            .limit(1)
+            .execute()
+        )
+        if response.data:
+            return response.data[0].get("buyer_country")
+        return None
+    except Exception as e:
+        logger.error("Supabase error fetching country for session %s: %s", session_id, e)
+        return None

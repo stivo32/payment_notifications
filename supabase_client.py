@@ -30,7 +30,7 @@ def get_purchase_country(session_id: str) -> str | None:
         response = (
             _client.table("purchase_logs")
             .select("buyer_country")
-            .eq("session_id", session_id)
+            .eq("checkout_session_id", session_id)
             .limit(1)
             .execute()
         )

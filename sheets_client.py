@@ -7,6 +7,7 @@ import config
 
 logger = logging.getLogger(__name__)
 
+_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 _HEADER = ["#", "Email", "Amount", "Product", "Country", "Net", "Session ID", "Payment Intent ID"]
 
 _gc = None
@@ -15,7 +16,7 @@ _gc = None
 def _get_gc():
     global _gc
     if _gc is None:
-        _gc = gspread.service_account(filename=config.GOOGLE_SERVICE_ACCOUNT_JSON)
+        _gc = gspread.service_account(filename=config.GOOGLE_SERVICE_ACCOUNT_JSON, scopes=_SCOPES)
     return _gc
 
 

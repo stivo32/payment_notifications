@@ -38,7 +38,10 @@ def _get_or_create_summary_sheet(spreadsheet):
             ws = spreadsheet.add_worksheet(title=_SUMMARY_TAB_NAME, rows=1000, cols=10, index=0)
 
     values = ws.get_all_values()
-    if not values:
+    has_header = len(values) >= 1 and values[0] == _SUMMARY_HEADER
+    has_total = len(values) >= 2 and len(values[1]) >= 1 and values[1][0] == "Total"
+    if not (has_header and has_total):
+        ws.clear()
         ws.append_rows([_SUMMARY_HEADER, _SUMMARY_TOTAL_ROW], value_input_option="USER_ENTERED")
     return ws
 
@@ -107,7 +110,6 @@ def sync_summary_sheet(spreadsheet=None) -> None:
             spreadsheet = _get_gc().open_by_key(config.GOOGLE_SPREADSHEET_ID)
 
         summary_ws = _get_or_create_summary_sheet(spreadsheet)
-        existing_months = set(summary_ws.col_values(1))
 
         month_tabs = [
             ws.title for ws in spreadsheet.worksheets()
@@ -115,16 +117,18 @@ def sync_summary_sheet(spreadsheet=None) -> None:
         ]
         month_tabs.sort()
 
+        all_rows = [_SUMMARY_HEADER, _SUMMARY_TOTAL_ROW]
         for month in month_tabs:
-            if month not in existing_months:
-                formula_row = [
-                    month,
-                    f"=SUM('{month}'!F2:F)",
-                    f"=SUM('{month}'!H2:H)",
-                    f"=SUM('{month}'!G2:G)",
-                ]
-                summary_ws.append_row(formula_row, value_input_option="USER_ENTERED")
-                existing_months.add(month)
+            all_rows.append([
+                month,
+                f"=SUM('{month}'!F2:F)",
+                f"=SUM('{month}'!H2:H)",
+                f"=SUM('{month}'!G2:G)",
+            ])
+
+        summary_ws.clear()
+        summary_ws.append_rows(all_rows, value_input_option="USER_ENTERED")
     except Exception:
         logger.error("Failed to sync summary sheet", exc_info=True)
+
 

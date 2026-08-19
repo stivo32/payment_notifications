@@ -1,6 +1,6 @@
 """
 Backfill historical Stripe events into Google Sheets.
-Usage: python backfill_sheets.py [--since 2024-06-08] [--dry-run]
+Usage: python backfill_sheets.py [--since 2024-06-08] [--dry-run] [--sync-summary]
 """
 import argparse
 from datetime import datetime, timezone
@@ -22,7 +22,14 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--since", default="2024-06-08", help="Start date YYYY-MM-DD (default: 2024-06-08)")
     parser.add_argument("--dry-run", action="store_true", help="Print rows without writing to Sheets")
+    parser.add_argument("--sync-summary", action="store_true", help="Sync Summary tab with all existing month tabs and exit")
     args = parser.parse_args()
+
+    if args.sync_summary:
+        print("Syncing Summary sheet with all existing month tabs...")
+        sheets_client.sync_summary_sheet()
+        print("Summary sync complete.")
+        return
 
     since_ts = int(datetime.strptime(args.since, "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp())
     print(f"Fetching all checkout.session.completed events since {args.since}...")
@@ -60,6 +67,9 @@ def main() -> None:
             sheets_client.append_row(session, product_name, country, stripe_fee, event.created)
             state.mark_sheets_exported(event.id)
         written += 1
+
+    if not args.dry_run and written > 0:
+        sheets_client.sync_summary_sheet()
 
     action = "Would write" if args.dry_run else "Written"
     print(f"\nDone. {action}: {written}, Skipped: {skipped}")
